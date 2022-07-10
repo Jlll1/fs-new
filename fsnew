@@ -1,0 +1,41 @@
+#!/bin/bash
+
+function usage() {
+  echo "usage: $0 <file>"
+}
+
+if [ "$#" -ne 1 ]; then
+  usage
+  exit 1
+fi
+
+FILE=$(basename $1)
+
+DIR="./$(dirname $1)"
+while [ "$DIR" != "." ]
+do
+  FSPROJ=$(find $DIR -maxdepth 1 -type f -name "*.fsproj")
+  if [ ! -z "$FSPROJ" ]; then 
+    break
+  fi
+  DIR=${DIR%/*}
+done
+
+if [ -z "$FSPROJ" ]; then
+  echo "could not find .fsproj to include the new file in. Aborting."
+  exit 1
+fi
+
+FSPROJPATH="$(dirname $FSPROJ)"
+FILEPATH="./$(dirname $1)"
+FILEPATH="${FILEPATH#"$FSPROJPATH"}"
+
+if [ "$FILEPATH" == "$FSPROJPATH" ]; then
+  FILE=$(basename $1)
+else
+  FILE="${FILEPATH}/$(basename $1)"
+fi
+
+touch $1
+sed -i "/<ItemGroup>/a \        <Compile Include=\"${FILE#"/"}\" />" $FSPROJ
+

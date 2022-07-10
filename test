@@ -1,0 +1,82 @@
+#!/bin/bash
+
+function pass() {
+  echo "${TEST}"
+}
+
+function fail() {
+  echo "${TEST}"
+  echo "^ Test Failed!"
+}
+
+
+TEST="Should create the file"
+  # Setup
+    mkdir -p test-dir
+    echo '<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Abc.fs" />
+  </ItemGroup>
+</Project>' > test-dir/t1.fsproj
+
+  # Test
+    ./fs-new test-dir/ts.fs
+    if [ -f test-dir/ts.fs ]; then
+      pass
+    else
+      fail
+    fi
+
+  # Teardown
+    rm -rf test-dir
+
+
+TEST="Should add the file to the fsproj When the fsproj is in the same directory as the file"
+  # Setup
+    mkdir -p test-dir
+    echo '<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Abc.fs" />
+  </ItemGroup>
+</Project>' > test-dir/t1.fsproj
+
+  # Test
+    ./fs-new test-dir/ts.fs
+    if grep -q -F '<Compile Include="ts.fs" />' test-dir/t1.fsproj; then
+      pass
+    else
+      fail
+    fi
+
+  # Teardown
+  rm -rf test-dir
+
+
+TEST="Should add the file to the fsproj When the fsproj is one directory higher"
+  # Setup
+    mkdir -p test-dir/f
+    echo '<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Abc.fs" />
+  </ItemGroup>
+</Project>' > test-dir/t1.fsproj
+
+  # Test
+    ./fs-new test-dir/f/ts.fs
+    if grep -q -F '<Compile Include="f/ts.fs" />' test-dir/t1.fsproj; then
+      pass
+    else
+      fail
+    fi
+
+  # Teardown
+  rm -rf test-dir
